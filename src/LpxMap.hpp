@@ -25,13 +25,27 @@ struct Entry {
       : key{std::forward<KeyType>(k)}, value{std::forward<ValueType>(v)} {}
 };
 
-inline constexpr uint8_t kEmpty = 0;
-inline constexpr uint8_t kTombstone = 1;
-// kOccupied = 0b1xxxxxxx, xxxxxxx = 7 lowest bits of hash (h2)
+// metadata ctrl bytes
+inline constexpr std::uint8_t k_empty = 0b1000'0000;
+inline constexpr std::uint8_t k_tombstone = 0b1100'0000;
+// k_occupied = 0b0xxxxxxx, xxxxxxx = 7 lowest bits of hash (h2)
+inline constexpr std::uint8_t k_vacant_mask = 0x80;
 
-// ? Maybe cast to uint64_t
 template <typename K>
 std::size_t hash_key(K key) {
-  return std::hash<K>{}();
+  return std::hash<K>{}(key);
 }
-std::pair<std::size_t, std::size_t> split_hash(std::size_t hash);
+
+struct SplitHash {
+  std::size_t h1;   // upper 57 bits
+  std::uint8_t h2;  // lower 7 bits
+};
+
+inline constexpr SplitHash split_hash(std::size_t hash) noexcept {
+  return {hash >> 7, static_cast<uint8_t>(hash & 0x7F)};
+}
+
+// using fixed capacity for the maps
+inline constexpr std::size_t k_cap_sm = 1 << 14;
+inline constexpr std::size_t k_cap_md = 1 << 20;
+inline constexpr std::size_t k_cap_lg = 1 << 24;

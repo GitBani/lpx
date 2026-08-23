@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <utility>
@@ -19,6 +20,20 @@ class ModTombMap {
     std::fill_n(ctrl_.get(), capacity, k_empty);
   }
 
+  ~ModTombMap() {
+    for (std::size_t i{0}; i < capacity_; ++i) {
+      if (!(ctrl_[i] & k_vacant_mask)) {
+        std::destroy_at(&slots_[i]);
+      }
+    }
+    entry_allocator.deallocate(slots_, capacity_);
+  }
+
+  ModTombMap(const ModTombMap& other) = delete;
+  ModTombMap& operator=(const ModTombMap& other) = delete;
+  ModTombMap(ModTombMap&& other) = delete;
+  ModTombMap& operator=(ModTombMap&& other) = delete;
+
   bool insert(const K& key, const V& value) {
     auto [h1, h2] = split_hash(hash_key(key));
     auto i = h1 % capacity_;
@@ -30,13 +45,13 @@ class ModTombMap {
         ++size_;
         return true;
       }
-      if (ctrl_[i] = h2 && slots_[i].key == key) {
+      if (ctrl_[i] == h2 && slots_[i].key == key) {
         return false;
       }
       i = (i + 1) % capacity_;
     }
 
-    // (theorically) unreachable (resizing needs to implemented first)
+    // unreachable (resizing needs to implemented first)
     return false;
   }
 
@@ -45,7 +60,7 @@ class ModTombMap {
     auto i = h1 % capacity_;
 
     while (true) {
-      if (ctrl_[i] = h2 && slots_[i].key == key) {
+      if (ctrl_[i] == h2 && slots_[i].key == key) {
         ctrl_[i] = k_tombstone;
         std::destroy_at(&slots_[i]);
         --size_;
@@ -57,7 +72,7 @@ class ModTombMap {
       i = (i + 1) % capacity_;
     }
 
-    // (theorically) unreachable (resizing needs to implemented first)
+    // unreachable (resizing needs to implemented first)
     return false;
   }
 
@@ -66,7 +81,7 @@ class ModTombMap {
     auto i = h1 % capacity_;
 
     while (true) {
-      if (ctrl_[i] = h2 && slots_[i].key == key) {
+      if (ctrl_[i] == h2 && slots_[i].key == key) {
         return std::optional{slots_[i].value};
       }
       if (ctrl_[i] == k_empty) {
@@ -75,7 +90,7 @@ class ModTombMap {
       i = (i + 1) % capacity_;
     }
 
-    // (theorically) unreachable (resizing needs to implemented first)
+    // unreachable (resizing needs to implemented first)
     return std::nullopt;
   }
 
@@ -85,4 +100,25 @@ class ModTombMap {
   std::size_t capacity_;
   std::unique_ptr<std::uint8_t[]> ctrl_;
   Entry<K, V>* slots_;
+
+  friend std::ostream& operator<<(std::ostream& os, const ModTombMap& map) {
+    os << '{';
+    std::size_t i{0};
+    std::size_t counter{0};
+    for (; counter < map.size_ && i < map.capacity_; ++i) {
+      if (!(map.ctrl_[i] & k_vacant_mask)) {
+        os << map.slots_[i].key << ": " << map.slots_[i].value;
+        ++counter;
+        break;
+      }
+    }
+    for (++i; counter < map.size_ && i < map.capacity_; ++i) {
+      if (!(map.ctrl_[i] & k_vacant_mask)) {
+        os << ", " << map.slots_[i].key << ": " << map.slots_[i].value;
+        ++counter;
+      }
+    }
+    os << "} (Size: " << map.size_ << ")\n";
+    return os;
+  }
 };

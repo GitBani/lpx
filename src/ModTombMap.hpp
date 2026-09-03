@@ -11,10 +11,9 @@
 
 template <typename K, typename V>
 class ModTombMap {
- public:
+public:
   explicit ModTombMap(std::size_t capacity)
-      : capacity_{capacity},
-        ctrl_{std::make_unique<std::uint8_t[]>(capacity)},
+      : capacity_{capacity}, ctrl_{std::make_unique<std::uint8_t[]>(capacity)},
         slots_{entry_allocator.allocate(capacity)} {
     std::fill_n(ctrl_.get(), capacity, k_empty);
   }
@@ -93,7 +92,7 @@ class ModTombMap {
     return std::nullopt;
   }
 
- private:
+private:
   std::allocator<Entry<K, V>> entry_allocator{};
   std::size_t size_{0};
   std::size_t capacity_;

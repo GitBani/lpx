@@ -1,2 +1,6 @@
+# build directories
 /build-dev
 /build-release
+
+# misc
+todo

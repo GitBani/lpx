@@ -1,0 +1,14 @@
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+
+# Binds references and pointers to the type: int& x, int* y
+PointerAlignment: Left
+
+# Forces template <...> onto its own line above the declaration
+AlwaysBreakTemplateDeclarations: Yes
+
+# Clean C++20 formatting tweaks
+ColumnLimit: 100
+IndentWidth: 2
+AccessModifierOffset: -2

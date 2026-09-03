@@ -6,7 +6,6 @@
 #include <iostream>
 #include <memory>
 #include <optional>
-#include <utility>
 
 #include "LpxMap.hpp"
 

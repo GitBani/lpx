@@ -7,12 +7,9 @@
 
 template <typename M, typename K, typename V>
 concept LpxMap = requires(M m, const K& k, const V& v) {
-  { m.insert(k, v) }
-  ->std::same_as<bool>;
-  { m.find(k) }
-  ->std::same_as<std::optional<V>>;
-  { m.erase(k) }
-  ->std::same_as<bool>;
+  { m.insert(k, v) } -> std::same_as<bool>;
+  { m.find(k) } -> std::same_as<std::optional<V>>;
+  { m.erase(k) } -> std::same_as<bool>;
 };
 
 template <typename K, typename V>
@@ -37,8 +34,8 @@ std::size_t hash_key(K key) {
 }
 
 struct SplitHash {
-  std::size_t h1;   // upper 57 bits
-  std::uint8_t h2;  // lower 7 bits
+  std::size_t h1;  // upper 57 bits
+  std::uint8_t h2; // lower 7 bits
 };
 
 inline constexpr SplitHash split_hash(std::size_t hash) noexcept {

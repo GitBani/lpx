@@ -92,11 +92,13 @@ public:
     return std::nullopt;
   }
 
+  std::size_t size() const { return size_; }
+
 private:
-  std::allocator<Entry<K, V>> entry_allocator{};
   std::size_t size_{0};
   std::size_t capacity_;
   std::unique_ptr<std::uint8_t[]> ctrl_;
+  std::allocator<Entry<K, V>> entry_allocator{};
   Entry<K, V>* slots_;
 
   friend std::ostream& operator<<(std::ostream& os, const ModTombMap& map) {

@@ -1,6 +1,5 @@
 # build directories
-/build-dev
-/build-release
+/build-*
 
 # misc
 todo

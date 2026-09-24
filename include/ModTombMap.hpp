@@ -35,18 +35,27 @@ public:
   bool insert(const K& key, const V& value) {
     auto [h1, h2] = split_hash(hash_key(key));
     auto i = h1 % capacity_;
+    std::optional<std::size_t> tombstone_idx;
 
-    while (true) {
-      if (ctrl_[i] & k_vacant_mask) {
+    for (;; i = (i + 1) % capacity_) {
+      if (ctrl_[i] == k_empty) {
+        if (tombstone_idx.has_value()) {
+          i = *tombstone_idx;
+        }
         ctrl_[i] = h2;
         std::construct_at(&slots_[i], key, value);
         ++size_;
         return true;
       }
+      if (ctrl_[i] == k_tombstone) {
+        // take note of available tombstone, keep probing
+        // to check if this is duplicate insert
+        tombstone_idx = i;
+        continue;
+      }
       if (ctrl_[i] == h2 && slots_[i].key == key) {
         return false;
       }
-      i = (i + 1) % capacity_;
     }
 
     // unreachable (resizing needs to implemented first)
@@ -57,7 +66,7 @@ public:
     auto [h1, h2] = split_hash(hash_key(key));
     auto i = h1 % capacity_;
 
-    while (true) {
+    for (;; i = (i + 1) % capacity_) {
       if (ctrl_[i] == h2 && slots_[i].key == key) {
         ctrl_[i] = k_tombstone;
         std::destroy_at(&slots_[i]);
@@ -66,8 +75,7 @@ public:
       }
       if (ctrl_[i] == k_empty) {
         return false;
-      }
-      i = (i + 1) % capacity_;
+      };
     }
 
     // unreachable (resizing needs to implemented first)
@@ -78,14 +86,13 @@ public:
     auto [h1, h2] = split_hash(hash_key(key));
     auto i = h1 % capacity_;
 
-    while (true) {
+    for (;; i = (i + 1) % capacity_) {
       if (ctrl_[i] == h2 && slots_[i].key == key) {
         return std::optional{slots_[i].value};
       }
       if (ctrl_[i] == k_empty) {
         return std::nullopt;
       }
-      i = (i + 1) % capacity_;
     }
 
     // unreachable (resizing needs to implemented first)

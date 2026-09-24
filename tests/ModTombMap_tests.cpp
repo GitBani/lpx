@@ -18,7 +18,7 @@ TYPED_TEST(CompareToStd, MatchStd) {
   std::random_device rd;
   std::mt19937 rng(rd());
 
-  for (int i = 0; i < 100'000; ++i) {
+  for (int i = 0; i < 1'000'000; ++i) {
     int op = rng() % 3;
     // small key range gets collisions/duplicates
     int key = rng() % 200;

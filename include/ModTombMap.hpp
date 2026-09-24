@@ -13,7 +13,7 @@ template <typename K, typename V>
 class ModTombMap {
 public:
   explicit ModTombMap(std::size_t capacity)
-      : capacity_{capacity}, ctrl_{std::make_unique<std::uint8_t[]>(capacity)},
+      : capacity_{capacity}, ctrl_{std::make_unique_for_overwrite<std::uint8_t[]>(capacity)},
         slots_{entry_allocator.allocate(capacity)} {
     std::fill_n(ctrl_.get(), capacity, k_empty);
   }

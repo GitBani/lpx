@@ -42,12 +42,12 @@ public:
         if (tombstone_idx.has_value()) {
           i = *tombstone_idx;
         }
-        ctrl_[i] = h2;
         std::construct_at(&slots_[i], key, value);
+        ctrl_[i] = h2;
         ++size_;
         return true;
       }
-      if (ctrl_[i] == k_tombstone) {
+      if (ctrl_[i] == k_tombstone && !tombstone_idx) {
         // take note of available tombstone, keep probing
         // to check if this is duplicate insert
         tombstone_idx = i;
@@ -75,14 +75,14 @@ public:
       }
       if (ctrl_[i] == k_empty) {
         return false;
-      };
+      }
     }
 
     // unreachable (resizing needs to implemented first)
     return false;
   }
 
-  std::optional<V> find(const K& key) {
+  std::optional<V> find(const K& key) const {
     auto [h1, h2] = split_hash(hash_key(key));
     auto i = h1 % capacity_;
 
